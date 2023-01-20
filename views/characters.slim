@@ -1,0 +1,31 @@
+h1 All Characters
+table
+    / Kan fixa till css här me hjälp av sections
+    label Name
+    label Class
+    label Race
+    label Level
+    label Strength
+    label Dexterity 
+    label Constitution 
+    label Intelligence 
+    label Wisdom 
+    label Charisma 
+    - @characters.each do |character|
+        tr
+            td= character[1] 
+            td= character[2]
+            td= character[3]
+            td= character[4]
+            td= character[5]
+            td= character[6]
+            td= character[7]
+            td= character[8]
+            td= character[9]
+            td= character[10]
+            td
+                a href="/play/#{character[0]}" Play
+            td
+                a href="/edit/#{character[0]}" Edit
+td
+    a href="/" Back 

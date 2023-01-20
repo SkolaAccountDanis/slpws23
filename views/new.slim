@@ -1,0 +1,43 @@
+h1 Create a new character
+form action='/create' method='post'
+  label for='name' Name:
+  input type='text' name='name'
+  br
+  label for='race' Race:
+  select# name='race'
+    option value="human" Human 
+    option value="half_elf" Half Elf 
+    option value="half_orc" Half Orc 
+    option value="goliath" Goliath   
+  br
+  label for='class' Class:
+  select# name='class'
+    option value="fighter" Fighter 
+    option value="barbarian" Barbarian
+    option value="wizard" Wizard
+    option value="bard" Bard   
+    option value="sorcerer" Sorcerer 
+  br
+  label for="level" Level: 
+  input type="number" name="level"
+
+  label for="str" STR: 
+  input# type="number" name="str"
+  
+  label for="dex" DEX: 
+  input# type="number" name="dex"
+  
+  label for="con" CON: 
+  input# type="number" name="con"
+  
+  label for="int" INT: 
+  input# type="number" name="int"
+  
+  label for="wis" WIS: 
+  input# type="number" name="wis"
+  
+  label for="cha" CHA: 
+  input# type="number" name="cha"
+  
+  input type='submit' value='Create'
+a href="/" Back 
