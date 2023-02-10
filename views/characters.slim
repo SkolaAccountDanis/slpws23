@@ -1,18 +1,18 @@
 h1 All Characters
 table
-    / Kan fixa till css här me hjälp av sections
-    label Name
-    label Class
-    label Race
-    label Level
-    label Strength
-    label Dexterity 
-    label Constitution 
-    label Intelligence 
-    label Wisdom 
-    label Charisma 
+    section id="AttrLabels"
+        label Name
+        label Class
+        label Race
+        label Level
+        label Strength
+        label Dexterity 
+        label Constitution 
+        label Intelligence 
+        label Wisdom 
+        label Charisma 
     - @characters.each do |character|
-        tr
+        tr id="TableForChar" class="timesText"
             td= character[1] 
             td= character[2]
             td= character[3]
@@ -27,5 +27,10 @@ table
                 a href="/play/#{character[0]}" Play
             td
                 a href="/edit/#{character[0]}" Edit
+            td 
+                a href="characters/#{character[0]}/items" Items 
+            td 
+                form action="characters/#{character[0]}/delete" method="post"
+                    input type="submit" value="Delete" 
 td
     a href="/" Back 

@@ -1,0 +1,13 @@
+h1 Items
+
+ul 
+    - @items.each do |item|
+        table
+            tr    
+                td = item["id"] 
+                td = item["name"]
+                td = item["description"]
+                td 
+                    a href="/characters/#{@character_id}/items/edit_items/#{item["id"]}" Edit
+a href="/characters" Back 
+a href="/characters/#{@character_id}/items/create_items" Create New Item  

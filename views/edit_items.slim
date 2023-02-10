@@ -1,0 +1,10 @@
+form action="/edit_items/#{@ItemId}" method="post"
+    label for="itemName" Name 
+    input type="text" name="itemName"
+    br
+    label for="itemDescription" Description 
+    input type="text" name="itemDescription"
+    br
+    input type="hidden" name="charID" value="#{@charID}"
+    input type="submit" value="Save"/
+a href="/characters/#{@charID}/items" Back 
