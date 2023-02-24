@@ -3,13 +3,57 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'slim'
 require 'sqlite3'
+require 'bcrypt'
+require_relative 'model'
 
 # Connect to the SQLite3 database
 db = SQLite3::Database.new("db/characters.db")
 
+
+
 # Define the routes for the app
+get '/register' do
+  slim :register
+end
+
+post '/register/new' do
+  username = params[:username]
+  password = params[:password]
+  password_confirm = params[:password_confirm]
+  
+  if (password == password_confirm)
+    encoded_password = Bcrypt::Password.create(password)
+    db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, password)
+    redirect("/login")
+  else
+    "Lösenorden matchar inte, försök igen!"
+  end
+
+end
+
+get '/login' do
+  slim :login
+end
+
+post "/login/update" do
+  username = params[:username]
+  password = params[:password]
+  db.results_as_hash = true
+  result = db.execute('SELECT * FROM users WHERE username = ?', username).first
+  check_password = result["password"]
+  id = result["id"]
+
+  if BCrypt::Password.new(check_password) == password
+    session[:id] = id
+    redirect("/index")
+  else
+    "FEL LÖSENORD"
+  end
+
+end
+
 get '/' do
-  slim :index
+  slim :homePage
 end
 
 get '/new' do
@@ -19,17 +63,18 @@ end
 
 post '/create' do
   # Create a new character in the database
-  name = params[:name]
-  race = params[:race]
-  char_class = params[:class]
-  str = params[:str]
-  dex = params[:dex]
-  con = params[:con]
-  int = params[:int]
-  wis = params[:wis]
-  cha = params[:cha]
-
-  db.execute("INSERT INTO characters (name, race, class, str, dex, con, int, wis, cha) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", name, race, char_class, str, dex, con, int, wis, cha)
+  DbAccesor.new.create_character(
+    name = params[:name],
+    race = params[:race],
+    char_class = params[:class],
+    level = params[:level],
+    str = params[:str],
+    dex = params[:dex],
+    con = params[:con],
+    int = params[:int],
+    wis = params[:wis],
+    cha = params[:cha]
+  )
   redirect to('/')
 end
 
@@ -40,14 +85,12 @@ get '/characters' do
 end
 
 
-post('/characters/:id/delete') do
-  id = params[:id].to_i
-  db.execute("DELETE FROM characters WHERE id = ?",id)
-  db.execute("DELETE FROM items WHERE character_id = ?", id)
+post '/characters/:id/delete' do
+  DbAccesor.new.delete_character(id = params[:id].to_i) 
   redirect('/characters')
 end
 
-get '/edit/:id' do
+get '/characters/:id/edit' do
   # Get a specific character from the database using the id parameter
   @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
   slim :edit
@@ -55,22 +98,22 @@ end
 
 post '/update/:id' do
   # Update a specific character in the database using the id parameter
-  name = params[:name]
-  race = params[:race]
-  char_class = params[:class]
-  level = params[:level]
-  str = params[:str]
-  dex = params[:dex]
-  con = params[:con]
-  int = params[:int]
-  wis = params[:wis]
-  cha = params[:cha] 
-  
-  db.execute("UPDATE characters SET name = ?, class = ?, race = ?, level = ?, str = ?, dex = ?, con = ?, int = ?, wis = ?, cha = ? WHERE id = ?", name, char_class, race, level, str, dex, con, int, wis, cha, params[:id])
+  DbAccesor.new.edit_character( 
+    name = params[:name],
+    race = params[:race],
+    char_class = params[:class],
+    level = params[:level],
+    str = params[:str],
+    dex = params[:dex],
+    con = params[:con],
+    int = params[:int],
+    wis = params[:wis],
+    cha = params[:cha], 
+    params[:id])
   redirect to('/characters')
 end
 
-get '/play/:id' do
+get '/characters/:id/play' do
   # Get a specific character from the database using the id parameter
   @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
   slim :play
@@ -84,20 +127,28 @@ get '/characters/:id/items' do
   if @items == nil
     @items = ['No items!']
   end
-  p @items
   slim :items
 end
 
-get "/characters/:id/items/create_items" do
+
+
+get "/characters/:id/items/new" do
   @result = params[:id]
   slim :new_items
 end
 
+
+post "/characters/:id/items/delete_items/:items_id" do
+  DbAccesor.new.delete_items(@char_id = params[:id], @item = params[:items_id])
+  redirect to("/characters/#{@char_id}/items")
+end
+
 post '/create_items/:id' do
-  @charIdForItems = params[:id]
-  itemName = params[:itemName]
-  itemDescription = params[:itemDescription]
-  db.execute("INSERT INTO items (name, description, character_id) VALUES (?, ?, ?)", itemName, itemDescription, @charIdForItems)
+  DbAccesor.new.create_items(
+    itemName = params[:itemName],
+    itemDescription = params[:itemDescription],
+    @charIdForItems = params[:id]
+  )
 
   redirect to("/characters/#{@charIdForItems}/items")
 end
@@ -109,10 +160,11 @@ get "/characters/:id/items/edit_items/:item_id" do
 end
 
 post "/edit_items/:item_id" do
-  @edit_Items_charID = params[:item_id]
-  itemName = params[:itemName]
-  itemDescription = params[:itemDescription]
+  DbAccesor.new.edit_items(
+    itemName = params[:itemName],
+    itemDescription = params[:itemDescription],
+    @edit_Items_charID = params[:item_id]
+  )
   charID = params[:charID]
-  db.execute("UPDATE items SET name = ?, description = ? WHERE id = ?",itemName, itemDescription, @edit_Items_charID)
   redirect to("/characters/#{charID}/items")
 end

@@ -9,5 +9,8 @@ ul
                 td = item["description"]
                 td 
                     a href="/characters/#{@character_id}/items/edit_items/#{item["id"]}" Edit
+                td
+                    form action="/characters/#{@character_id}/items/delete_items/#{item["id"]}" method="post"
+                        input type="submit" value="Delete"/
 a href="/characters" Back 
-a href="/characters/#{@character_id}/items/create_items" Create New Item  
+a href="/characters/#{@character_id}/items/new" Create New Item  
