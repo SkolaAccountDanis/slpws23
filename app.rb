@@ -6,6 +6,10 @@ require 'sqlite3'
 require 'bcrypt'
 require_relative 'model'
 
+enable :sessions
+
+
+
 # Connect to the SQLite3 database
 db = SQLite3::Database.new("db/characters.db")
 
@@ -16,14 +20,14 @@ get '/register' do
   slim :register
 end
 
-post '/register/new' do
+post '/users/new' do
   username = params[:username]
   password = params[:password]
   password_confirm = params[:password_confirm]
   
   if (password == password_confirm)
-    encoded_password = Bcrypt::Password.create(password)
-    db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, password)
+    encoded_password = BCrypt::Password.create(password)
+    db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, encoded_password)
     redirect("/login")
   else
     "Lösenorden matchar inte, försök igen!"
@@ -35,22 +39,29 @@ get '/login' do
   slim :login
 end
 
+get "/index" do
+  slim :index
+end
+
 post "/login/update" do
   username = params[:username]
   password = params[:password]
   db.results_as_hash = true
   result = db.execute('SELECT * FROM users WHERE username = ?', username).first
-  check_password = result["password"]
-  id = result["id"]
+  check_password = result["password"].to_s
+  user_id = result["id"]
 
-  if BCrypt::Password.new(check_password) == password
-    session[:id] = id
+  p check_password
+  if (BCrypt::Password.new(check_password) == password)
+    user_id = session[:id]
+
     redirect("/index")
   else
     "FEL LÖSENORD"
   end
 
 end
+
 
 get '/' do
   slim :homePage
@@ -73,14 +84,16 @@ post '/create' do
     con = params[:con],
     int = params[:int],
     wis = params[:wis],
-    cha = params[:cha]
+    cha = params[:cha],
+    user_id = session[:id]
   )
   redirect to('/')
 end
 
 get '/characters' do
   # Get all characters from the database
-  @characters = db.execute("SELECT * FROM characters")
+  user_id = session[:id]
+  @characters = db.execute("SELECT * FROM characters WHERE users_id = ?", user_id )
   slim :characters
 end
 
@@ -143,11 +156,11 @@ post "/characters/:id/items/delete_items/:items_id" do
   redirect to("/characters/#{@char_id}/items")
 end
 
-post '/create_items/:id' do
+post '/create_items/:char_id' do
   DbAccesor.new.create_items(
     itemName = params[:itemName],
     itemDescription = params[:itemDescription],
-    @charIdForItems = params[:id]
+    @charIdForItems = params[:char_id]
   )
 
   redirect to("/characters/#{@charIdForItems}/items")
