@@ -12,6 +12,7 @@ enable :sessions
 
 # Connect to the SQLite3 database
 db = SQLite3::Database.new("db/characters.db")
+db.results_as_hash = true
 
 
 
@@ -29,7 +30,6 @@ post '/users/new' do
     encoded_password = BCrypt::Password.create(password)
     db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, encoded_password)
     redirect("/login")
-  else
     "Lösenorden matchar inte, försök igen!"
   end
 
@@ -40,21 +40,26 @@ get '/login' do
 end
 
 get "/index" do
+  redirect("/") unless session[:id]
+  user_id = session[:id]
+  @permission = db.execute("SELECT permissions from users WHERE id = ?", user_id).first
+  @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
   slim :index
 end
 
 post "/login/update" do
-  username = params[:username]
+  @username = params[:username]
   password = params[:password]
   db.results_as_hash = true
-  result = db.execute('SELECT * FROM users WHERE username = ?', username).first
-  check_password = result["password"].to_s
-  user_id = result["id"]
+  @result = db.execute('SELECT * FROM users WHERE username = ?', @username).first
+  check_password = @result["password"].to_s
+  user_id = @result["id"]
 
   p check_password
   if (BCrypt::Password.new(check_password) == password)
-    user_id = session[:id]
-
+    session[:id] = user_id
+    session[:username] = db.execute('SELECT username FROM users WHERE id = ?', session[:id])
+   
     redirect("/index")
   else
     "FEL LÖSENORD"
@@ -68,6 +73,7 @@ get '/' do
 end
 
 get '/new' do
+  redirect("/") unless session[:id]
   slim :new
 end
 
@@ -87,16 +93,32 @@ post '/create' do
     cha = params[:cha],
     user_id = session[:id]
   )
-  redirect to('/')
+  redirect to('/index')
 end
 
 get '/characters' do
   # Get all characters from the database
   user_id = session[:id]
-  @characters = db.execute("SELECT * FROM characters WHERE users_id = ?", user_id )
+  redirect("/") unless user_id
+  @permissions = db.execute("SELECT permissions from users WHERE id = ?", user_id).first
+  if @permissions["permissions"] == 1
+    @characters = db.execute("SELECT * FROM characters")
+  else
+    @characters = db.execute("SELECT * FROM characters WHERE users_id = ?", user_id )
+  end
+  p @characters
   slim :characters
 end
 
+get '/adminSite' do
+  @all_users = db.execute("SELECT * FROM users")
+  slim :adminSite
+end
+
+post "/adminSite/:id/delete" do
+  DbAccesor.new.delete_user(user_id = params[:id])
+  redirect('/adminSite')
+end
 
 post '/characters/:id/delete' do
   DbAccesor.new.delete_character(id = params[:id].to_i) 
@@ -105,6 +127,8 @@ end
 
 get '/characters/:id/edit' do
   # Get a specific character from the database using the id parameter
+  redirect("/") unless session[:id]
+  @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
   @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
   slim :edit
 end
@@ -128,13 +152,15 @@ end
 
 get '/characters/:id/play' do
   # Get a specific character from the database using the id parameter
+  redirect("/") unless session[:id]
+  @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
   @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
   slim :play
 end
 
 get '/characters/:id/items' do 
+  redirect("/") unless session[:id]
   @character_id = params[:id].to_i
-
   db.results_as_hash = true
   @items = db.execute("SELECT * FROM items WHERE character_id = ?", @character_id) 
   if @items == nil
@@ -146,6 +172,7 @@ end
 
 
 get "/characters/:id/items/new" do
+  redirect("/") unless session[:id]
   @result = params[:id]
   slim :new_items
 end
@@ -167,6 +194,7 @@ post '/create_items/:char_id' do
 end
 
 get "/characters/:id/items/edit_items/:item_id" do
+  redirect("/") unless session[:id]
   @charID = params[:id]
   @ItemId = params[:item_id]
   slim :edit_items
@@ -180,4 +208,10 @@ post "/edit_items/:item_id" do
   )
   charID = params[:charID]
   redirect to("/characters/#{charID}/items")
+end
+
+get "/destroy" do
+  redirect("/") unless session[:id]
+  session.clear
+  return "<html> <body> <h1> logged out! </h1> <a href='/''>Go back home :)</a> </body> </html>"
 end

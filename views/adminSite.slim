@@ -1,0 +1,10 @@
+
+table
+    - @all_users.each do |users|
+            tr id="TableForChar" class="timesText"
+                td= users[1] 
+                td
+                    form action="/adminSite/#{users[0]}/delete" method="post"
+                        input type="submit" value="Delete" 
+td
+    a href="/index" Back 

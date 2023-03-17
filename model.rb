@@ -27,7 +27,7 @@ class DbAccesor
         db.execute("UPDATE items SET name = ?, description = ? WHERE id = ?",itemName, itemDescription, id)
     end
 
-    def delete_character(id)
+    def delete_character(id) 
         db = SQLite3::Database.new("db/characters.db")
         db.execute("DELETE FROM characters WHERE id = ?",id)
         db.execute("DELETE FROM items WHERE character_id = ?", id)
@@ -39,4 +39,13 @@ class DbAccesor
         db.execute("DELETE FROM items WHERE id =?", items_id)
     end
 
+    def delete_user(user_id)
+        db = SQLite3::Database.new("db/characters.db")
+        db.execute("DELETE FROM users WHERE id=?", user_id)
+        db.execute("DELETE FROM characters WHERE id=?", user_id)
+        db.execute("DELETE FROM items WHERE id = ?", user_id)
+    end
+
 end
+
+ 

@@ -3,3 +3,7 @@ a href='/new' Create a new character
 br
 br
 a href='/characters' View all characters
+br
+br
+- if @permission["permissions"] == 1
+    a href="/adminSite" View all users 

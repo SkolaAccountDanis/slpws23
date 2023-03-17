@@ -4,4 +4,7 @@ html
   head
     title DnD Character Creator
   body
+    - if session[:username] != nil
+        h1 You are logged in as #{session[:username][0][0]}!
+        a href="/destroy" Log out!  
     == yield
