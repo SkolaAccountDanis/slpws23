@@ -42,10 +42,14 @@ class DbAccesor
     def delete_user(user_id)
         db = SQLite3::Database.new("db/characters.db")
         db.execute("DELETE FROM users WHERE id=?", user_id)
-        db.execute("DELETE FROM characters WHERE id=?", user_id)
+        db.execute("DELETE FROM characters WHERE id = ?", user_id)
         db.execute("DELETE FROM items WHERE id = ?", user_id)
+    end
+
+    def userCheck(char_id)
+        db = SQLite3::Database.new("db/characters.db")
+        return db.execute("SELECT users_id FROM characters WHERE id = ?", char_id)
     end
 
 end
 
- 

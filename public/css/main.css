@@ -22,11 +22,14 @@ a{
     background-color: peachpuff;
 }
 
-#AttrLabels{
+.AttrLabels{
     display: grid;
     grid-template-columns: repeat(10, 100px);
     background-color: peachpuff;
-    /* overflow: hidden; */
+}
+
+#shareCharLayout{
+    grid-template-columns: repeat(11, 100px);
 }
 
 .timesText td {

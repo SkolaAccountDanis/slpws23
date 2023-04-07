@@ -30,9 +30,10 @@ post '/users/new' do
     encoded_password = BCrypt::Password.create(password)
     db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, encoded_password)
     redirect("/login")
-    "Lösenorden matchar inte, försök igen!"
+  else
+    p "Lösenorden matchar inte, försök igen!"
+    redirect("/register")
   end
-
 end
 
 get '/login' do
@@ -42,7 +43,8 @@ end
 get "/index" do
   redirect("/") unless session[:id]
   user_id = session[:id]
-  @permission = db.execute("SELECT permissions from users WHERE id = ?", user_id).first
+  @permission = db.execute("SELECT permissions FROM users WHERE id = ?", user_id).first
+  p @permission
   @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
   slim :index
 end
@@ -121,13 +123,16 @@ post "/adminSite/:id/delete" do
 end
 
 post '/characters/:id/delete' do
+  charOwnerId = DbAccesor.new.userCheck(params[:id])
+  redirect("/") unless charOwnerId == session[:id] 
   DbAccesor.new.delete_character(id = params[:id].to_i) 
   redirect('/characters')
 end
-
+ 
 get '/characters/:id/edit' do
   # Get a specific character from the database using the id parameter
-  redirect("/") unless session[:id]
+  charOwnerId = DbAccesor.new.userCheck(params[:id])
+  redirect("/") unless charOwnerId == session[:id] 
   @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
   @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
   slim :edit
@@ -135,6 +140,8 @@ end
 
 post '/update/:id' do
   # Update a specific character in the database using the id parameter
+  charOwnerId = DbAccesor.new.userCheck(params[:id])
+  redirect("/") unless charOwnerId == session[:id]
   DbAccesor.new.edit_character( 
     name = params[:name],
     race = params[:race],
@@ -152,14 +159,16 @@ end
 
 get '/characters/:id/play' do
   # Get a specific character from the database using the id parameter
-  redirect("/") unless session[:id]
+  charOwnerId = DbAccesor.new.userCheck(params[:id])
+  redirect("/") unless charOwnerId == session[:id]
   @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
   @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
   slim :play
 end
 
 get '/characters/:id/items' do 
-  redirect("/") unless session[:id]
+  charOwnerId = DbAccesor.new.userCheck(params[:id])
+  redirect("/") unless charOwnerId == session[:id]
   @character_id = params[:id].to_i
   db.results_as_hash = true
   @items = db.execute("SELECT * FROM items WHERE character_id = ?", @character_id) 
@@ -170,9 +179,9 @@ get '/characters/:id/items' do
 end
 
 
-
 get "/characters/:id/items/new" do
-  redirect("/") unless session[:id]
+  charOwnerId = DbAccesor.new.userCheck(params[:id])
+  redirect("/") unless charOwnerId == session[:id]
   @result = params[:id]
   slim :new_items
 end
@@ -213,5 +222,12 @@ end
 get "/destroy" do
   redirect("/") unless session[:id]
   session.clear
-  return "<html> <body> <h1> logged out! </h1> <a href='/''>Go back home :)</a> </body> </html>"
+  slim :homePage
+end
+
+get '/shareChar' do
+  redirect("/") unless session[:id]
+  @all_characters = db.execute("SELECT * FROM characters")
+  @all_users = db.execute("SELECT * FROM users")
+  slim :shareChar
 end

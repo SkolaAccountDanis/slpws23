@@ -1,0 +1,32 @@
+
+
+table 
+    section id="shareCharLayout"class="AttrLabels"
+        label User 
+        label Name
+        label Class
+        label Race
+        label Level
+        label Strength
+        label Dexterity 
+        label Constitution 
+        label Intelligence 
+        label Wisdom 
+        label Charisma 
+    - @all_characters.each do |characters|
+        tr id="TableForChar" class="timesText"
+            - for user in @all_users
+                - if user["id"] == characters[11]
+                    td #{user["username"]}
+            td= characters[1]
+            td= characters[2]
+            td= characters[3]
+            td= characters[4]
+            td= characters[5]
+            td= characters[6]
+            td= characters[7]
+            td= characters[8]
+            td= characters[9]
+            td= characters[10]
+a href="/index" Back 
+            
