@@ -22,7 +22,7 @@ get '/register' do
 end
 
 post '/users/new' do
-  username = params[:username]
+  username = params[:username] 
   password = params[:password]
   password_confirm = params[:password_confirm]
   
@@ -109,7 +109,7 @@ get '/characters' do
     @characters = db.execute("SELECT * FROM characters WHERE users_id = ?", user_id )
   end
   p @characters
-  slim :characters
+  slim (:"characters/show")
 end
 
 get '/adminSite' do
@@ -130,7 +130,6 @@ post '/characters/:id/delete' do
 end
  
 get '/characters/:id/edit' do
-  # Get a specific character from the database using the id parameter
   charOwnerId = DbAccesor.new.userCheck(params[:id])
   redirect("/") unless charOwnerId == session[:id] 
   @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
