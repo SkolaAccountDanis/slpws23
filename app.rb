@@ -8,15 +8,10 @@ require_relative 'model'
 
 enable :sessions
 
-
-
-# Connect to the SQLite3 database
 db = SQLite3::Database.new("db/characters.db")
 db.results_as_hash = true
 
 
-
-# Define the routes for the app
 get '/register' do
   slim :register
 end
@@ -76,11 +71,11 @@ end
 
 get '/new' do
   redirect("/") unless session[:id]
-  slim :new
+  slim (:"characters/new")
 end
 
 
-post '/create' do
+post '/characters/new' do
   # Create a new character in the database
   DbAccesor.new.create_character(
     name = params[:name],
@@ -113,7 +108,14 @@ get '/characters' do
 end
 
 get '/adminSite' do
-  @all_users = db.execute("SELECT * FROM users")
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1
+    @all_users = db.execute("SELECT * FROM users")
+  elsif session[:id] != nil
+    redirect("/index")
+  else
+    redirect("/")
+  end 
   slim :adminSite
 end
 
@@ -123,66 +125,113 @@ post "/adminSite/:id/delete" do
 end
 
 post '/characters/:id/delete' do
-  charOwnerId = DbAccesor.new.userCheck(params[:id])
-  redirect("/") unless charOwnerId == session[:id] 
-  DbAccesor.new.delete_character(id = params[:id].to_i) 
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1
+    DbAccesor.new.delete_character(id = params[:id].to_i)
+  else
+    charOwnerId = DbAccesor.new.userCheck(params[:id]).first
+    redirect("/") unless charOwnerId[0] == session[:id] 
+    DbAccesor.new.delete_character(id = params[:id].to_i) 
+  end
   redirect('/characters')
 end
  
 get '/characters/:id/edit' do
-  charOwnerId = DbAccesor.new.userCheck(params[:id])
-  redirect("/") unless charOwnerId == session[:id] 
-  @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
-  @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
-  slim :edit
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1
+    @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
+    @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
+  else
+    charOwnerId = DbAccesor.new.userCheck(params[:id]).first
+    redirect("/") unless charOwnerId[0] == session[:id] 
+    @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
+    @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
+  end
+  slim (:"characters/edit")
 end
 
-post '/update/:id' do
-  # Update a specific character in the database using the id parameter
-  charOwnerId = DbAccesor.new.userCheck(params[:id])
-  redirect("/") unless charOwnerId == session[:id]
-  DbAccesor.new.edit_character( 
-    name = params[:name],
-    race = params[:race],
-    char_class = params[:class],
-    level = params[:level],
-    str = params[:str],
-    dex = params[:dex],
-    con = params[:con],
-    int = params[:int],
-    wis = params[:wis],
-    cha = params[:cha], 
-    params[:id])
+post '/characters/:id/edit' do
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1  
+    DbAccesor.new.edit_character( 
+      name = params[:name],
+      race = params[:race],
+      char_class = params[:class],
+      level = params[:level],
+      str = params[:str],
+      dex = params[:dex],
+      con = params[:con],
+      int = params[:int],
+      wis = params[:wis],
+      cha = params[:cha], 
+      params[:id])
+    else
+      charOwnerId = DbAccesor.new.userCheck(params[:id]).first
+      redirect("/") unless charOwnerId[0] == session[:id]
+      DbAccesor.new.edit_character( 
+        name = params[:name],
+        race = params[:race],
+        char_class = params[:class],
+        level = params[:level],
+        str = params[:str],
+        dex = params[:dex],
+        con = params[:con],
+        int = params[:int],
+        wis = params[:wis],
+        cha = params[:cha], 
+        params[:id])
+      end
   redirect to('/characters')
 end
 
 get '/characters/:id/play' do
   # Get a specific character from the database using the id parameter
-  charOwnerId = DbAccesor.new.userCheck(params[:id])
-  redirect("/") unless charOwnerId == session[:id]
-  @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
-  @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
-  slim :play
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1
+    @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
+    @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
+  else
+    charOwnerId = DbAccesor.new.userCheck(params[:id]).first
+    redirect("/") unless charOwnerId[0] == session[:id]
+    @username = db.execute('SELECT username FROM users WHERE id = ?', session[:id]).first
+    @character = db.execute("SELECT * FROM characters WHERE id = ?", params[:id]).first
+  end
+  slim (:"characters/play")
 end
 
 get '/characters/:id/items' do 
-  charOwnerId = DbAccesor.new.userCheck(params[:id])
-  redirect("/") unless charOwnerId == session[:id]
-  @character_id = params[:id].to_i
-  db.results_as_hash = true
-  @items = db.execute("SELECT * FROM items WHERE character_id = ?", @character_id) 
-  if @items == nil
-    @items = ['No items!']
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1
+    @character_id = params[:id].to_i
+    db.results_as_hash = true
+    @items = db.execute("SELECT * FROM items WHERE character_id = ?", @character_id) 
+    if @items == nil
+      @items = ['No items!']
+    end
+  else
+    charOwnerId = DbAccesor.new.userCheck(params[:id]).first
+    redirect("/") unless charOwnerId[0] == session[:id]
+    @character_id = params[:id].to_i
+    db.results_as_hash = true
+    @items = db.execute("SELECT * FROM items WHERE character_id = ?", @character_id) 
+    if @items == nil
+      @items = ['No items!']
+    end
   end
-  slim :items
+  slim (:"items/items")
 end
 
 
 get "/characters/:id/items/new" do
-  charOwnerId = DbAccesor.new.userCheck(params[:id])
-  redirect("/") unless charOwnerId == session[:id]
-  @result = params[:id]
-  slim :new_items
+  permissions = db.execute("SELECT permissions from users WHERE id = ?", session[:id]).first
+  if permissions["permissions"] == 1
+    @result = params[:id]
+  else
+    charOwnerId = DbAccesor.new.userCheck(params[:id]).first
+    redirect("/") unless charOwnerId[0] == session[:id]
+    @result = params[:id]
+  end
+  slim (:"items/new_items")
 end
 
 
@@ -197,7 +246,6 @@ post '/create_items/:char_id' do
     itemDescription = params[:itemDescription],
     @charIdForItems = params[:char_id]
   )
-
   redirect to("/characters/#{@charIdForItems}/items")
 end
 
@@ -205,7 +253,7 @@ get "/characters/:id/items/edit_items/:item_id" do
   redirect("/") unless session[:id]
   @charID = params[:id]
   @ItemId = params[:item_id]
-  slim :edit_items
+  slim (:"items/edit_items")
 end
 
 post "/edit_items/:item_id" do
@@ -228,5 +276,5 @@ get '/shareChar' do
   redirect("/") unless session[:id]
   @all_characters = db.execute("SELECT * FROM characters")
   @all_users = db.execute("SELECT * FROM users")
-  slim :shareChar
+  slim (:"characters/shareChar")
 end
