@@ -1,5 +1,5 @@
 h1 Edit Character
-form action="/characters/#{@character[0]}/edit" method='post'
+form action="/characters/#{@character[0]}/update" method='post'
   label for='name' Name:
   input type='text' name='name' value="#{@character[1]}"
   br
@@ -40,4 +40,4 @@ form action="/characters/#{@character[0]}/edit" method='post'
   input type='text' name='cha' value="#{@character[10]}"
   br
   input type='submit' value='Save'
-a href="/characters" Back
+a href="/characters/" Back

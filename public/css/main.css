@@ -18,7 +18,7 @@ a{
 
 #TableForChar{
     display: grid;
-    grid-template-columns: repeat(14, 100px);
+    grid-template-columns: repeat(13, 100px);
     background-color: peachpuff;
 }
 
@@ -29,9 +29,10 @@ a{
 }
 
 #shareCharLayout{
-    grid-template-columns: repeat(11, 100px);
+    grid-template-columns: repeat(12, 100px);
 }
 
 .timesText td {
     font-family: 'Times New Roman', Times, serif;
 }
+

@@ -1,0 +1,13 @@
+h1 Welcome to the DnD Character Creator
+a href='/characters/new' Create a new character
+br
+br
+a href='/characters/' View all characters
+br
+br
+a href="/shareChar/" Share and like characters
+br
+br
+- if @permission["permissions"] == 1
+    a href="/adminSite/" View all users 
+ 

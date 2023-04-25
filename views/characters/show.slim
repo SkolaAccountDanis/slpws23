@@ -1,36 +1,34 @@
-h1 All Characters
+h1 Character Sheet
 table
-    section class="AttrLabels"
-        label Name
-        label Class
-        label Race
-        label Level
-        label Strength
-        label Dexterity 
-        label Constitution 
-        label Intelligence 
-        label Wisdom 
-        label Charisma 
-    - @characters.each do |character|
-        tr id="TableForChar" class="timesText"
-            td= character[1] 
-            td= character[2]
-            td= character[3]
-            td= character[4]
-            td= character[5]
-            td= character[6]
-            td= character[7]
-            td= character[8]
-            td= character[9]
-            td= character[10]
-            td
-                a href="/characters/#{character[0]}/play" Play
-            td
-                a href="characters/#{character[0]}/edit" Edit
-            td 
-                a href="characters/#{character[0]}/items" Items 
-            td 
-                form action="characters/#{character[0]}/delete" method="post"
-                    input type="submit" value="Delete" 
-td
-    a href="/index" Back 
+  tr
+    td Name:
+    td= @character[1]
+  tr
+    td Class:
+    td= @character[2]
+  tr
+    td Race:
+    td= @character[3]
+  tr 
+    td Level: 
+    td =@character[4]
+  tr
+    td STR:
+    td= @character[5]
+  tr
+    td DEX:
+    td= @character[6]
+  tr
+    td CON:
+    td= @character[7]
+  tr
+    td INT:
+    td= @character[8]
+  tr
+    td WIS:
+    td= @character[9]
+  tr
+    td CHA:
+    td= @character[10]
+
+a href="/characters/" Back 

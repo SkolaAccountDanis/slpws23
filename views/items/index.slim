@@ -8,9 +8,9 @@ ul
                 td = item["name"]
                 td = item["description"]
                 td 
-                    a href="/characters/#{@character_id}/items/edit_items/#{item["id"]}" Edit
+                    a href="/characters/#{@character_id}/items/#{item["id"]}/edit" Edit
                 td
-                    form action="/characters/#{@character_id}/items/delete_items/#{item["id"]}" method="post"
+                    form action="/characters/#{@character_id}/items/#{item["id"]}/delete" method="post"
                         input type="submit" value="Delete"/
-a href="/characters" Back 
+a href="/characters/" Back 
 a href="/characters/#{@character_id}/items/new" Create New Item  
